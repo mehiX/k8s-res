@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
-	"text/tabwriter"
 
 	"gopkg.in/yaml.v3"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-func ShowAggregates(in io.Reader) error {
+func ShowAggregates(w io.Writer, in io.Reader) error {
 	allObjects, err := readObjects(in)
 	if err != nil {
 		return err
@@ -20,7 +18,7 @@ func ShowAggregates(in io.Reader) error {
 
 	lines := toOuputWithAggregates(allObjects)
 
-	print(lines)
+	print(w, lines)
 
 	return nil
 }
@@ -47,10 +45,8 @@ func readObjects(in io.Reader) ([]Object, error) {
 	return allObjects, nil
 }
 
-func print(lines []OutputLine) {
+func print(w io.Writer, lines []OutputLine) {
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 2, 3, ' ', tabwriter.AlignRight)
-	defer w.Flush()
 	fmt.Fprintln(w, "Kind\trepl\tcpuR\tmemR\tcpuL\tmemL\tvol\t")
 
 	delimiter := "--------\t-------\t-------\t-------\t------\t------\t-------\t"
