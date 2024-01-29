@@ -1,6 +1,8 @@
 module github.com/mehix/k8s-resources
 
-go 1.21.6
+go 1.21
+
+toolchain go1.21.6
 
 require (
 	github.com/spf13/cobra v1.8.0
