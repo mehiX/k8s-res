@@ -1,0 +1,493 @@
+---
+# Source: confluent-kafka/templates/network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: np-allow-kube-dns
+spec:
+  egress:
+    - {}
+  ingress:
+    - {}
+  podSelector: {}
+  policyTypes:
+    - Egress
+    - Ingress
+status: {}
+---
+# Source: confluent-kafka/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kafka
+---
+# Source: confluent-kafka/templates/license.yaml
+apiVersion: v1
+data:
+  lisence.txt: x
+kind: Secret
+metadata:
+  name: confluent-license
+  namespace: namespace
+type: Opaque
+---
+# Source: confluent-kafka/templates/serviceaccount.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kafka-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+---
+# Source: confluent-kafka/templates/serviceaccount.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kafka-binding
+subjects:
+- kind: ServiceAccount
+  name: kafka
+  namespace: namespace
+roleRef:
+  kind: Role
+  name: kafka-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: confluent-kafka/templates/controlcenter-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: controlcenter
+spec:
+  rules:
+  - host: controlcenter.namespace.example.domain
+    http:
+      paths:
+      - backend:
+          service:
+            name: controlcenter-0-internal
+            port:
+              number: 9021
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - controlcenter.namespace.example.domain
+    secretName: controlcenter-tls
+---
+# Source: confluent-kafka/templates/rolebinding.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: c3-rb-0
+spec:
+  principal:
+    name: c3
+    type: user
+  clustersScopeByIds:
+    schemaRegistryClusterId: schema-registry-mrc
+  role: SystemAdmin
+---
+# Source: confluent-kafka/templates/rolebinding.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: sr-rb-0
+spec:
+  principal:
+    name: sr
+    type: user
+  clustersScopeByIds:
+    schemaRegistryClusterId: schema-registry-mrc
+  role: SecurityAdmin
+---
+# Source: confluent-kafka/templates/rolebinding.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: sr-rb-1
+spec:
+  principal:
+    name: sr
+    type: user
+  resourcePatterns:
+    - name: _schemas_mrc
+      patternType: LITERAL
+      resourceType: Topic
+    - name: schema-registry-mrc
+      patternType: LITERAL
+      resourceType: Group
+  role: ResourceOwner
+---
+# Source: confluent-kafka/templates/kafka-connect.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: Connect
+metadata:
+  name: connect
+  namespace: "dgp-kafka-o"
+  labels:
+    app.kubernetes.io/part-of: release-name
+spec:
+  replicas: 1
+  image:
+    application: harbor.cicd-p-zone1.l12m.nl/pgu-dgp/kafka-server-connect:latest
+    init: confluentinc/confluent-init-container:2.7.0
+  dependencies:
+    kafka:
+      bootstrapEndpoint: kafka-zone1:9072
+  podTemplate:
+    labels:
+      app.kubernetes.io/name: connect
+      app.kubernetes.io/part-of: release-name
+      app.kubernetes.io/component: confluent-kafka
+      app.kubernetes.io/managed-by: connect
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      limits:
+        cpu: 450m
+        memory: 6Gi
+      requests:
+        cpu: 400m
+        memory: 5Gi
+---
+# Source: confluent-kafka/templates/connector-mongo.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: mongo-kafka-connect
+  namespace: "dgp-kafka-o"
+spec:
+  taskMax: 1
+  class: com.mongodb.kafka.connect.MongoSinkConnector
+  configs:
+    tasks.max: "100"
+  restartPolicy:
+    maxRetry: 100
+    type: OnFailure
+  connectClusterRef:
+    name: connect
+---
+# Source: confluent-kafka/templates/controlcenter.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: ControlCenter
+metadata:
+  name: controlcenter
+spec:
+  configOverrides:
+    server:
+      - confluent.controlcenter.streams.consumer.client.rack=zone1
+      - confluent.controlcenter.streams.replication.factor=-1
+      - max.poll.interval.ms=300000
+  dataVolumeCapacity: 150Gi
+  storageClass:
+    name: shared-silver-block
+  dependencies:
+    kafka:
+      bootstrapEndpoint: >-
+        kafka-zone1-bootstrap-lb.namespace.svc.cluster.local:9092,
+        kafka-zone2-ext.namespace.example2.domain:9092
+    schemaRegistry:
+      url: >-
+        http://sr-zone1-ext.namespace.example.domain:8081,
+        http://sr-zone2-ext.namespace.example2.domain:8081
+    connect:
+      - name: connect
+        url: http://connect-0.connect.namespace.svc.cluster.local:8083
+  image:
+    application: confluentinc/cp-enterprise-control-center:7.5.0
+    init: confluentinc/confluent-init-container:2.7.0
+  podTemplate:
+    resources:
+      limits:
+        cpu: 1200m
+        memory: 13Gi
+      requests:
+        cpu: 1100m
+        memory: 12Gi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+  replicas: 1
+---
+# Source: confluent-kafka/templates/kafka.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: Kafka
+metadata:
+  annotations:
+    platform.confluent.io/broker-id-offset: "10"
+  name: kafka-zone1
+spec:
+  configOverrides:
+    server:
+      - broker.rack=zone1
+  dataVolumeCapacity: 50Gi
+  storageClass:
+    name:  shared-silver-block
+  dependencies:
+    zookeeper:
+      endpoint: >-
+        zookeeper.namespace.svc.cluster.local:2181,
+        zk-zone2-ext.namespace.example2.domain:2181
+  license:
+    globalLicense: true
+    secretRef: confluent-license
+  image:
+    application: confluentinc/cp-server:7.5.0
+    init: confluentinc/confluent-init-container:2.7.0
+  listeners:
+    external:
+      externalAccess:
+        loadBalancer:
+          annotations:
+            metallb.universe.tf/address-pool: secu
+          bootstrapPrefix: kafka-zone1-ext
+          brokerPrefix: kafka-zone1-ext
+          domain: namespace.example.domain
+        type: loadBalancer
+    replication:
+      externalAccess:
+        loadBalancer:
+          annotations:
+            metallb.universe.tf/address-pool: secu
+          bootstrapPrefix: kafka-zone1
+          brokerPrefix: kafka-zone1
+          domain: namespace.example.domain
+        type: loadBalancer
+  podTemplate:
+    resources:
+      limits:
+        cpu: 300m
+        memory: 5Gi
+      requests:
+        cpu: 250m
+        memory: 4Gi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    serviceAccountName: kafka
+  replicas: 3
+  metricReporter:
+    enabled: true
+    bootstrapEndpoint: kafka-zone1-ext.namespace.example.domain:9072
+---
+# Source: confluent-kafka/templates/kafkaproxy.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaRestProxy
+metadata:
+  name: kafkarestproxy-zone1
+spec:
+  externalAccess:
+    type: loadBalancer
+    loadBalancer:
+      annotations:
+        metallb.universe.tf/address-pool: secu
+      domain: namespace.example.domain
+      advertisedURL:
+        enabled: true
+        prefix: rest-zone1-ext
+      prefix: rest-zone1-ext
+  dependencies:
+    kafka:
+      bootstrapEndpoint: >-
+        kafka-zone1-bootstrap-lb.namespace.svc.cluster.local:9092,
+        kafka-zone2-ext.namespace.example2.domain:9092
+    schemaRegistry:
+      url: >-
+        http://sr-zone1-ext.namespace.example.domain:8081,
+        http://sr-zone2-ext.namespace.example2.domain:8081
+  license:
+    globalLicense: true
+    secretRef: confluent-license
+  image:
+    application: confluentinc/cp-kafka-rest:7.5.0
+    init: confluentinc/confluent-init-container:2.7.0
+  podTemplate:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 1500Mi
+      requests:
+        cpu: 50m
+        memory: 1000Mi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    serviceAccountName: kafka
+  replicas: 2
+---
+# Source: confluent-kafka/templates/topics.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: test
+spec:
+  partitionCount: 6  
+  kafkaClusterRef:
+    name: kafka-zone1
+  configs:
+      confluent.placement.constraints: |-
+          {
+            "version": 1,
+            "replicas": [
+            {
+            "count": 1,
+            "constraints": {"rack": "zone1"}
+            },
+            {
+            "count": 1,
+            "constraints": {"rack": "zone2"}
+            }
+            ]
+          }
+---
+# Source: confluent-kafka/templates/topics.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: rack-test-1
+spec:
+  partitionCount: 1  
+  replicas: 5
+  kafkaClusterRef:
+    name: kafka-zone1
+  configs:
+    min.insync.replicas: "4"
+---
+# Source: confluent-kafka/templates/topics.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: rack-test-2
+spec:
+  partitionCount: 1 
+  kafkaClusterRef:
+    name: kafka-zone1
+  configs:
+    min.insync.replicas: "4"
+---
+# Source: confluent-kafka/templates/schemaregistry.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: SchemaRegistry
+metadata:
+  name: schemaregistry
+spec:
+  configOverrides:
+    server:
+      - leader.eligibility=true
+      - inter.instance.listener.name=EXTERNAL
+      - kafkastore.client.rack=zone1
+      - kafkastore.topic=_schemas_mrc
+      - schema.registry.group.id=schema-registry-mrc
+  dependencies:
+    kafka:
+      bootstrapEndpoint: >-
+        kafka-zone1-ext.namespace.example.domain:9092,
+        kafka-zone2-ext.namespace.example2.domain:9092
+  listeners:
+    internal:
+    external:
+      externalAccess:
+        loadBalancer:
+          annotations:
+            metallb.universe.tf/address-pool: secu
+          advertisedURL:
+            enabled: true
+            prefix: sr-zone1-ext
+          prefix: sr-zone1-ext
+          domain: namespace.example.domain
+        type: loadBalancer
+  image:
+    application: confluentinc/cp-schema-registry:7.5.0
+    init: confluentinc/confluent-init-container:2.7.0
+  podTemplate:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 2Gi
+      requests:
+        cpu: 50m
+        memory: 2Gi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    serviceAccountName: kafka
+  replicas: 2
+---
+# Source: confluent-kafka/templates/zookeeper.yaml
+apiVersion: platform.confluent.io/v1beta1
+kind: Zookeeper
+metadata:
+  annotations:
+    platform.confluent.io/zookeeper-myid-offset: "0"
+  name: zookeeper
+spec:
+  externalAccess:
+    type: loadBalancer
+    loadBalancer:
+      annotations:
+        metallb.universe.tf/address-pool: secu
+      domain: namespace.example.domain
+      advertisedURL:
+        enabled: true
+        prefix: zk-zone1-ext
+      prefix: zk-zone1-ext
+  peers:
+    - server.0=zookeeper-0.zookeeper.namespace.svc.cluster.local:2888:3888
+    - server.1=zookeeper-1.zookeeper.namespace.svc.cluster.local:2888:3888
+    - server.2=zookeeper-2.zookeeper.namespace.svc.cluster.local:2888:3888
+    - server.10=zk-zone20.namespace.example2.domain:2888:3888
+    - server.11=zk-zone21.namespace.example2.domain:2888:3888
+  dataVolumeCapacity: 40Gi
+  storageClass:
+    name: shared-silver-block
+  license:
+    globalLicense: true
+    secretRef: confluent-license
+  image:
+    application: confluentinc/cp-zookeeper:7.5.0
+    init: confluentinc/confluent-init-container:2.7.0
+  logVolumeCapacity: 10Gi
+  podTemplate:
+    resources:
+      limits:
+        cpu: 150m
+        memory: 2Gi
+      requests:
+        cpu: 100m
+        memory: 2Gi
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+  replicas: 3

@@ -8,7 +8,7 @@ all: build
 
 build:
 	@mkdir -p $(BIN)
-	go build -o ./$(BIN)/k8sres ./main.go
+	go build -o ./$(BIN)/k8s-resources ./main.go
 
 clean:
 	rm -r ./$(BIN)
