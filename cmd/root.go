@@ -5,7 +5,7 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/mehix/k8s-resources/pkg/aggr"
+	"github.com/mehix/k8s-resources/internal/aggr"
 	"github.com/spf13/cobra"
 )
 
