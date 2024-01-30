@@ -5,26 +5,53 @@ import (
 	_ "embed"
 	"os"
 	"text/tabwriter"
+
+	"github.com/mehix/k8s-resources/internal/aggr/confluentinc"
+	"github.com/mehix/k8s-resources/internal/aggr/k8s"
 )
 
-//go:embed testdata.yaml
-var data []byte
+//go:embed testdata_k8s.yaml
+var dataK8s []byte
 
-func ExampleShowAggregates() {
+//go:embed testdata_confluentinc.yaml
+var dataConfluentinc []byte
+
+func ExampleAggregator_PrintResources_k8s() {
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, '.', tabwriter.AlignRight|tabwriter.Debug)
 	defer w.Flush()
 
-	ShowAggregates(w, bytes.NewReader(data))
+	headers := []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL"}
+	aggregator := NewAggregator[k8s.Objects](headers, k8s.AddAggregates)
+
+	aggregator.PrintResources(w, bytes.NewReader(dataK8s))
+	// output:
+	// ......Kind|....repl|....cpuR|....memR|....cpuL|....memL|
+	// ..--------|--------|--------|--------|--------|--------|
+	// Deployment|.......4|....100m|...128Mi|....200m|...256Mi|
+	// .......Pod|.......2|.....50m|...100Mi|....100m|...150Mi|
+	// ..--------|--------|--------|--------|--------|--------|
+	// ..........|.......0|....500m|...712Mi|.......1|..1324Mi|
+}
+
+func ExampleAggregator_PrintResources_confluentinc() {
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, '.', tabwriter.AlignRight|tabwriter.Debug)
+	defer w.Flush()
+
+	headers := []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL", "vol"}
+	aggregator := NewAggregator[confluentinc.Objects](headers, confluentinc.AddAggregates)
+
+	aggregator.PrintResources(w, bytes.NewReader(dataConfluentinc))
 	// Output:
-	// ..........Kind|...repl|...cpuR|...memR|..cpuL|...memL|....vol|
-	// ......--------|-------|-------|-------|------|.------|-------|
-	// .......Connect|......1|...400m|....5Gi|..450m|....6Gi|.......|
-	// .ControlCenter|......1|..1100m|...12Gi|.1200m|...13Gi|..150Gi|
-	// .........Kafka|......3|...250m|....4Gi|..300m|....5Gi|...50Gi|
-	// KafkaRestProxy|......2|....50m|.1000Mi|..100m|.1500Mi|.......|
-	// SchemaRegistry|......2|....50m|....2Gi|..100m|....2Gi|.......|
-	// .....Zookeeper|......3|...100m|....2Gi|..150m|....2Gi|...40Gi|
-	// ......--------|-------|-------|-------|------|.------|-------|
-	// ..............|......0|..2750m|41936Mi|.3400m|48056Mi|..420Gi|
+	// ..........Kind|....repl|....cpuR|....memR|....cpuL|....memL|.....vol|
+	// ......--------|--------|--------|--------|--------|--------|--------|
+	// .......Connect|.......1|....400m|.....5Gi|....450m|.....6Gi|........|
+	// .ControlCenter|.......1|...1100m|....12Gi|...1200m|....13Gi|...150Gi|
+	// .........Kafka|.......3|....250m|.....4Gi|....300m|.....5Gi|....50Gi|
+	// KafkaRestProxy|.......2|.....50m|..1000Mi|....100m|..1500Mi|........|
+	// SchemaRegistry|.......2|.....50m|.....2Gi|....100m|.....2Gi|........|
+	// .....Zookeeper|.......3|....100m|.....2Gi|....150m|.....2Gi|....40Gi|
+	// ......--------|--------|--------|--------|--------|--------|--------|
+	// ..............|.......0|...2750m|.41936Mi|...3400m|.48056Mi|...420Gi|
 }
