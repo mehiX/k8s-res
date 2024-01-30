@@ -24,13 +24,13 @@ var cmdRoot = &cobra.Command{
 		switch dataSrc {
 		case "confluentinc":
 			headers := []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL", "vol"}
-			aggregator := aggr.NewAggregator[confluentinc.Objects](headers, confluentinc.AddAggregates)
+			aggregator := aggr.NewAggregator[confluentinc.Objects](headers, confluentinc.ComputeAggregates)
 			if err := aggregator.PrintResources(w, os.Stdin); err != nil {
 				log.Fatal(err)
 			}
 		case "k8s":
 			headers := []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL"}
-			aggregator := aggr.NewAggregator[k8s.Objects](headers, k8s.AddAggregates)
+			aggregator := aggr.NewAggregator[k8s.Objects](headers, k8s.ComputeAggregates)
 			if err := aggregator.PrintResources(w, os.Stdin); err != nil {
 				log.Fatal(err)
 			}

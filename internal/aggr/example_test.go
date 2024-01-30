@@ -22,7 +22,7 @@ func ExampleAggregator_PrintResources_k8s() {
 	defer w.Flush()
 
 	headers := []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL"}
-	aggregator := NewAggregator[k8s.Objects](headers, k8s.AddAggregates)
+	aggregator := NewAggregator[k8s.Objects](headers, k8s.ComputeAggregates)
 
 	aggregator.PrintResources(w, bytes.NewReader(dataK8s))
 	// output:
@@ -40,7 +40,7 @@ func ExampleAggregator_PrintResources_confluentinc() {
 	defer w.Flush()
 
 	headers := []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL", "vol"}
-	aggregator := NewAggregator[confluentinc.Objects](headers, confluentinc.AddAggregates)
+	aggregator := NewAggregator[confluentinc.Objects](headers, confluentinc.ComputeAggregates)
 
 	aggregator.PrintResources(w, bytes.NewReader(dataConfluentinc))
 	// Output:

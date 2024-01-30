@@ -5,15 +5,10 @@ import (
 	"io"
 	"log"
 
-	"github.com/mehix/k8s-resources/internal/aggr/confluentinc"
-	"github.com/mehix/k8s-resources/internal/aggr/k8s"
-	"github.com/mehix/k8s-resources/internal/aggr/output"
 	"gopkg.in/yaml.v3"
 )
 
-type Object interface {
-	confluentinc.Object | k8s.Object
-}
+type Object = Printable
 
 type Aggregator[T ~[]O, O Object] struct {
 	Headers []string
@@ -34,12 +29,12 @@ func (a Aggregator[T, O]) PrintResources(w io.Writer, in io.Reader) error {
 		return err
 	}
 
-	output.Print(w, lines, a.Headers)
+	printAll(w, lines, a.Headers)
 
 	return nil
 }
 
-func (a Aggregator[T, O]) getWithAggregates(in io.Reader) ([]output.Printable, error) {
+func (a Aggregator[T, O]) getWithAggregates(in io.Reader) ([]Printable, error) {
 
 	allObjects, err := a.readObjects(in)
 	if err != nil {
@@ -48,9 +43,9 @@ func (a Aggregator[T, O]) getWithAggregates(in io.Reader) ([]output.Printable, e
 
 	allObjects = a.f(allObjects)
 
-	printItems := make([]output.Printable, len(allObjects))
+	printItems := make([]Printable, len(allObjects))
 	for i := range allObjects {
-		printItems[i] = output.Printable(allObjects[i])
+		printItems[i] = Printable(allObjects[i])
 	}
 
 	return printItems, nil

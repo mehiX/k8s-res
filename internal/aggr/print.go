@@ -1,4 +1,4 @@
-package output
+package aggr
 
 import (
 	"fmt"
@@ -25,7 +25,7 @@ func toTxt(objs []Printable) (lines []string) {
 	return
 }
 
-func Print(w io.Writer, objs []Printable, headers []string) {
+func printAll(w io.Writer, objs []Printable, headers []string) {
 
 	delimiter := strings.Repeat("--------\t", len(headers))
 

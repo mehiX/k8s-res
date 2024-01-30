@@ -4,7 +4,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-func AddAggregates(objs Objects) Objects {
+func ComputeAggregates(objs Objects) Objects {
 
 	tCpuR := new(resource.Quantity)
 	tCpuL := new(resource.Quantity)
