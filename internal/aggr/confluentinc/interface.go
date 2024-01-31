@@ -43,7 +43,7 @@ func ComputeAggregates(objs Objects) Objects {
 		}
 
 		var dv resource.Quantity
-		if v := o.Spec.DataVolumeCapacity; v != "" {
+		if v := o.diskVol(); v != "" {
 			dv = resource.MustParse(v)
 		}
 

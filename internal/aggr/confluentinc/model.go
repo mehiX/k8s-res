@@ -1,6 +1,10 @@
 package confluentinc
 
-import "fmt"
+import (
+	"fmt"
+
+	"k8s.io/apimachinery/pkg/api/resource"
+)
 
 type Objects []Object
 
@@ -24,6 +28,18 @@ func newObject(apiVersion, kind string, cpuL, memL, cpuR, memR, dataVol string) 
 	}
 }
 
+func (o Object) diskVol() string {
+	diskVol := new(resource.Quantity)
+	if v := o.Spec.DataVolumeCapacity; v != "" {
+		diskVol.Add(resource.MustParse(v))
+	}
+	if v := o.Spec.LogVolumeCapacity; v != "" {
+		diskVol.Add(resource.MustParse(v))
+	}
+
+	return diskVol.String()
+}
+
 func (o Object) Outputline() string {
 
 	lf := "%s\t%d\t%s\t%s\t%s\t%s\t%s\t"
@@ -31,7 +47,7 @@ func (o Object) Outputline() string {
 	replicas := o.Spec.Replicas
 
 	if o.Spec.PodTemplate == nil {
-		return fmt.Sprintf(lf, name, replicas, "", "", "", "", o.Spec.DataVolumeCapacity)
+		return fmt.Sprintf(lf, name, replicas, "", "", "", "", o.diskVol())
 	}
 
 	return fmt.Sprintf(lf, name, replicas,
@@ -39,7 +55,7 @@ func (o Object) Outputline() string {
 		o.Spec.PodTemplate.Resources.Requests.Memory,
 		o.Spec.PodTemplate.Resources.Limits.Cpu,
 		o.Spec.PodTemplate.Resources.Limits.Memory,
-		o.Spec.DataVolumeCapacity)
+		o.diskVol())
 }
 
 func (o Object) IsEmpty() bool {
@@ -54,6 +70,7 @@ type Object struct {
 
 type spec struct {
 	DataVolumeCapacity string       `yaml:"dataVolumeCapacity"`
+	LogVolumeCapacity  string       `yaml:"logVolumeCapacity"`
 	PodTemplate        *podTemplate `yaml:"podTemplate"`
 	Replicas           int          `yaml:"replicas"`
 }
