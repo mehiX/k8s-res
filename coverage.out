@@ -24,3 +24,4 @@ github.com/mehix/k8s-resources/internal/aggr/print.go:28.64,37.26 5 1
 github.com/mehix/k8s-resources/internal/aggr/print.go:37.26,39.24 1 1
 github.com/mehix/k8s-resources/internal/aggr/print.go:39.24,41.4 1 1
 github.com/mehix/k8s-resources/internal/aggr/print.go:42.3,42.21 1 1
+github.com/mehix/k8s-resources/internal/aggr/print.go:45.2,45.17 1 1

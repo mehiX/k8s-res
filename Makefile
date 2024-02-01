@@ -1,6 +1,6 @@
 BIN=dist
 
-.PHONY: build all clean test
+.PHONY: build all clean test cover
 
 default: all
 
@@ -11,6 +11,9 @@ build:
 	go build -o ./$(BIN)/k8s-resources ./main.go
 
 test:
+	go test -v ./...
+	
+cover:
 	go test -v -cover -coverprofile=coverage.out ./internal/...
 	go tool cover -html=coverage.out
 
