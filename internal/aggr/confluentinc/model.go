@@ -42,9 +42,12 @@ func (o Object) diskVol() string {
 
 func (o Object) Outputline() string {
 
-	lf := "%s\t%d\t%s\t%s\t%s\t%s\t%s\t"
+	lf := "%s\t%s\t%s\t%s\t%s\t%s\t%s\t"
 	name := o.Kind
-	replicas := o.Spec.Replicas
+	replicas := ""
+	if o.Spec.Replicas > 0 {
+		replicas = fmt.Sprintf("%d", o.Spec.Replicas)
+	}
 
 	if o.Spec.PodTemplate == nil {
 		return fmt.Sprintf(lf, name, replicas, "", "", "", "", o.diskVol())

@@ -32,9 +32,12 @@ func newObject(apiVersion, kind string, cpuL, memL, cpuR, memR string) Object {
 
 func (o Object) Outputline() string {
 
-	lf := "%s\t%d\t%s\t%s\t%s\t%s\t"
+	lf := "%s\t%s\t%s\t%s\t%s\t%s\t"
 	name := o.Kind
-	replicas := o.Spec.Replicas
+	replicas := ""
+	if r := o.Spec.Replicas; r > 0 {
+		replicas = fmt.Sprintf("%d", r)
+	}
 
 	if o.IsEmpty() {
 		return fmt.Sprintf(lf, name, replicas, "", "", "", "")
