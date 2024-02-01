@@ -41,4 +41,6 @@ func printAll(w io.Writer, objs []Printable, headers []string) {
 		}
 		fmt.Fprintln(w, l)
 	}
+
+	fmt.Fprintln(w)
 }
