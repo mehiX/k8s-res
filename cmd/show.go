@@ -6,15 +6,16 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/mehix/k8s-resources/internal/aggr"
-	"github.com/mehix/k8s-resources/internal/aggr/confluentinc"
-	"github.com/mehix/k8s-resources/internal/aggr/k8s"
+	"github.com/mehix/k8s-res/internal/aggr"
+	"github.com/mehix/k8s-res/internal/aggr/confluentinc"
+	"github.com/mehix/k8s-res/internal/aggr/k8s"
 	"github.com/spf13/cobra"
 )
 
 var cmdShow = &cobra.Command{
-	Use:  "show",
-	Long: "Show a total of the resources declared in a set of yaml deployment files",
+	Use:   "show",
+	Long:  "Read yaml files from standard input and print out resources declared and their total values",
+	Short: "Show a total of the resources declared in a set of yaml deployment files",
 	Run: func(cmd *cobra.Command, args []string) {
 		w := tabwriter.NewWriter(os.Stdout, 0, 2, 3, ' ', tabwriter.AlignRight)
 		defer w.Flush()

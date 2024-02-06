@@ -14,7 +14,7 @@ var cmdRoot = &cobra.Command{
 }
 
 func Execute() {
-	cmdRoot.AddCommand(cmdShow)
+	cmdRoot.AddCommand(cmdShow, cmdNamespaces)
 
 	if err := cmdRoot.Execute(); err != nil {
 		log.Fatal(err)
