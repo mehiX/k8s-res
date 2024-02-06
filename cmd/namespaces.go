@@ -76,6 +76,11 @@ func whichNamespaces() ([]string, error) {
 	slices.Sort(ns)
 	ns = slices.Compact(ns)
 
+	if ns[0] == "" {
+		// if there is an empty element then it is in the first position
+		ns = ns[1:]
+	}
+
 	return ns, nil
 }
 
