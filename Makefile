@@ -1,4 +1,5 @@
-BIN=dist
+DEST=dist
+BIN=$(DEST)/k8s-res
 
 .PHONY: build all clean test cover
 
@@ -7,8 +8,8 @@ default: all
 all: build
 
 build:
-	@mkdir -p $(BIN)
-	go build -o ./$(BIN)/k8s-resources ./main.go
+	@mkdir -p $(DEST)
+	go build -o ./$(BIN) ./main.go
 
 test:
 	go test -v ./...
@@ -18,4 +19,4 @@ cover:
 	go tool cover -html=coverage.out
 
 clean:
-	rm -r ./$(BIN)
+	rm -r ./$(DEST)
