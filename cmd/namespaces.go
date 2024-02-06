@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -24,6 +26,7 @@ import (
 var kCtx *string
 var kconf *string
 var onlyNamespaces *string
+var onlyNamespacesFromFile *string
 
 func init() {
 
@@ -36,6 +39,8 @@ func init() {
 	kCtx = cmdNamespaces.PersistentFlags().String("context", "", "Choose a Kubernetes context. If left empty, then the default will be used")
 
 	onlyNamespaces = cmdNamespaces.PersistentFlags().String("only", "", "comma-separated list of namespaces")
+
+	onlyNamespacesFromFile = cmdNamespaces.PersistentFlags().String("only-file", "", "Location of file with the list of namespaces to query")
 }
 
 var cmdNamespaces = &cobra.Command{
@@ -51,9 +56,35 @@ var cmdNamespaces = &cobra.Command{
 	},
 }
 
+func whichNamespaces() ([]string, error) {
+
+	lst := *onlyNamespaces
+
+	if *onlyNamespacesFromFile != "" {
+		b, err := os.ReadFile(*onlyNamespacesFromFile)
+		if err != nil {
+			return nil, fmt.Errorf("Reading input file %s got error: %w", *onlyNamespacesFromFile, err)
+		}
+		b = bytes.ReplaceAll(b, []byte("\n"), []byte(","))
+		lst += "," + string(b)
+	}
+
+	ns := strings.Split(lst, ",")
+	for i := range ns {
+		ns[i] = strings.TrimSpace(ns[i])
+	}
+	slices.Sort(ns)
+	ns = slices.Compact(ns)
+
+	return ns, nil
+}
+
 func Resources(ctx context.Context) error {
 
-	filterByNS := strings.Split(*onlyNamespaces, ",")
+	filterByNS, err := whichNamespaces()
+	if err != nil {
+		return err
+	}
 
 	configLoadRules := &clientcmd.ClientConfigLoadingRules{ExplicitPath: *kconf}
 	configOverrides := &clientcmd.ConfigOverrides{CurrentContext: *kCtx}
