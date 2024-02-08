@@ -6,7 +6,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var dataSrc string
+var (
+	version, commit, date = "dev", "dev", "n/a"
+)
 
 var cmdRoot = &cobra.Command{
 	Use:   "k8s-res",
@@ -14,7 +16,7 @@ var cmdRoot = &cobra.Command{
 }
 
 func Execute() {
-	cmdRoot.AddCommand(cmdShow, cmdNamespaces)
+	cmdRoot.AddCommand(cmdVersion, cmdShow, cmdNamespaces)
 
 	if err := cmdRoot.Execute(); err != nil {
 		log.Fatal(err)

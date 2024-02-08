@@ -12,6 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var dataSrc string
+
 var cmdShow = &cobra.Command{
 	Use:   "show",
 	Long:  "Read yaml files from standard input and print out resources declared and their total values",
