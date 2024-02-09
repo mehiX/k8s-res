@@ -11,7 +11,7 @@ var (
 )
 
 var cmdRoot = &cobra.Command{
-	Use:   "kres",
+	Use:   "kuberes",
 	Short: "Show sizes of Kubernetes resources",
 }
 

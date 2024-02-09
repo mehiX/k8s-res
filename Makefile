@@ -1,4 +1,4 @@
-NAME		:= kres
+NAME		:= kuberes
 DEST		:= ./dist
 OUTPUT_BIN	:= $(DEST)/$(NAME)
 PACKAGE		:= $(shell grep -E "^module" go.mod | cut -d ' ' -f 2)

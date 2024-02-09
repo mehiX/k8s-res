@@ -6,8 +6,8 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/mehix/kres/internal/aggr/confluentinc"
-	"github.com/mehix/kres/internal/aggr/k8s"
+	"github.com/mehix/kuberes/internal/aggr/confluentinc"
+	"github.com/mehix/kuberes/internal/aggr/k8s"
 )
 
 //go:embed testdata_k8s.yaml

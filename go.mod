@@ -1,4 +1,4 @@
-module github.com/mehix/kres
+module github.com/mehix/kuberes
 
 go 1.21.3
 

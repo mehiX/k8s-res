@@ -14,7 +14,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/mehix/kres/internal/namespaces"
+	"github.com/mehix/kuberes/internal/namespaces"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
