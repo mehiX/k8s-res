@@ -11,26 +11,25 @@ DATE       ?= $(shell date -u -d @${SOURCE_DATE_EPOCH} +"%Y-%m-%dT%H:%M:%SZ")
 endif
 VERSION    ?= v0.1
 
-.PHONY: build all clean test cover
+default: help
 
-default: all
-
-all: build
-
-build:
+build:	## Build binaries
 	@echo *********** BUILD EXEC ***************
 	@mkdir -p $(DEST)
 	@go build \
 	-ldflags "-w -s -X ${PACKAGE}/cmd.version=${VERSION} -X ${PACKAGE}/cmd.commit=${GIT_REV} -X ${PACKAGE}/cmd.date=${DATE}" \
 	-a -o ./$(OUTPUT_BIN) ./main.go
 
-test:
+test:  ## Run the tests
 	go test -v ./...
 	
-cover:
+cover:  ## Produce coverage reports
 	go test -v -cover -coverprofile=coverage.out ./internal/...
 	go tool cover -html=coverage.out -o=coverge.html
 
-clean:
+clean:  ## Remove the binaries directory
 	@echo *********** CLEANUP ***************
 	@rm -r ./$(DEST)
+
+help:  ## Print help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":[^:]*?## "}; {printf "\033[38;5;69m%-30s\033[38;5;38m %s\033[0m\n", $$1, $$2}'
