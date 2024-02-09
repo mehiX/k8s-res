@@ -11,12 +11,12 @@ var (
 )
 
 var cmdRoot = &cobra.Command{
-	Use:   "kres",
+	Use:   "kres show",
 	Short: "Show sizes of Kubernetes resources",
 }
 
 func Execute() {
-	cmdRoot.AddCommand(cmdVersion, cmdShow, cmdNamespaces)
+	cmdRoot.AddCommand(cmdVersion, cmdDeclared, cmdNamespaces)
 
 	if err := cmdRoot.Execute(); err != nil {
 		log.Fatal(err)

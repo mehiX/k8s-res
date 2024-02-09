@@ -1,4 +1,4 @@
-module github.com/mehix/k8s-res
+module github.com/mehix/kres
 
 go 1.21.3
 

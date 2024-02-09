@@ -14,7 +14,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/mehix/k8s-res/internal/namespaces"
+	"github.com/mehix/kres/internal/namespaces"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -44,7 +44,7 @@ func init() {
 }
 
 var cmdNamespaces = &cobra.Command{
-	Use:   "namespaces",
+	Use:   "ns [--kubeconfig path] [--context name] [--only list] [--only-file path]",
 	Short: "Show resources for namespace(s)",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

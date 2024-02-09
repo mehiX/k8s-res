@@ -5,7 +5,7 @@ based on the resources declarations and replicas
 package main
 
 import (
-	"github.com/mehix/k8s-res/cmd"
+	"github.com/mehix/kres/cmd"
 )
 
 func main() {

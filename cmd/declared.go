@@ -6,16 +6,16 @@ import (
 	"os"
 	"text/tabwriter"
 
-	"github.com/mehix/k8s-res/internal/aggr"
-	"github.com/mehix/k8s-res/internal/aggr/confluentinc"
-	"github.com/mehix/k8s-res/internal/aggr/k8s"
+	"github.com/mehix/kres/internal/aggr"
+	"github.com/mehix/kres/internal/aggr/confluentinc"
+	"github.com/mehix/kres/internal/aggr/k8s"
 	"github.com/spf13/cobra"
 )
 
 var dataSrc string
 
-var cmdShow = &cobra.Command{
-	Use:   "show",
+var cmdDeclared = &cobra.Command{
+	Use:   "declared [--src {confluentinc | k8s}]",
 	Long:  "Read yaml files from standard input and print out resources declared and their total values",
 	Short: "Show a total of the resources declared in a set of yaml deployment files",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -43,5 +43,5 @@ var cmdShow = &cobra.Command{
 }
 
 func init() {
-	cmdShow.PersistentFlags().StringVar(&dataSrc, "src", "confluentinc", "Source of the YAML files")
+	cmdDeclared.PersistentFlags().StringVar(&dataSrc, "src", "confluentinc", "Source of the YAML files")
 }

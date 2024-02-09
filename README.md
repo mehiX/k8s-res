@@ -1,22 +1,23 @@
-# Overview of resources declared in Kubernetes deployments
+# Kubernetes inspection tool (mainly resource)
 
-## Run
+## Install
 
 ```shell
-make
-cat internal/aggr/testdata_confluentinc.yaml | ./dist/k8s-res show
+go install github.com/mehix/kres@latest
+kres version
+```
+
+## View resources declared in YAML manifest
+
+Takes in input a series of YAML manifests, all in 1 file.
+
+```shell
+cat internal/aggr/testdata_confluentinc.yaml | kres declared
 ```
 
 Test with a Helm repo:
 
 ```shell
 helm repo add bitnami https://charts.bitnami.com/bitnami
-helm template bitnami/wordpress | go run ./main.go --src k8s
-```
-
-## Install and use binary
-
-```shell
-go install github.com/mehix/k8s-res
-k8s-res -h
+helm template bitnami/wordpress | kres declared --src k8s
 ```
