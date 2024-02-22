@@ -21,17 +21,17 @@ func ExampleAggregator_PrintResources_k8s() {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, '.', tabwriter.AlignRight|tabwriter.Debug)
 	defer w.Flush()
 
-	headers := []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL"}
+	headers := []string{"Name", "Kind", "repl", "cpuR", "memR", "cpuL", "memL"}
 	aggregator := NewAggregator[k8s.Objects](headers, k8s.ComputeAggregates)
 
 	aggregator.PrintResources(w, bytes.NewReader(dataK8s))
 	// output:
-	// ......Kind|....repl|....cpuR|....memR|....cpuL|....memL|
-	// ..--------|--------|--------|--------|--------|--------|
-	// Deployment|.......4|....100m|...128Mi|....200m|...256Mi|
-	// .......Pod|.......2|.....50m|...100Mi|....100m|...150Mi|
-	// ..--------|--------|--------|--------|--------|--------|
-	// ..........|........|....500m|...712Mi|.......1|..1324Mi|
+	// .............................Name|......Kind|....repl|....cpuR|....memR|....cpuL|....memL|
+	// .........................--------|..--------|--------|--------|--------|--------|--------|
+	// ................release-name-test|Deployment|.......4|....100m|...128Mi|....200m|...256Mi|
+	// release-name-test-test-connection|.......Pod|.......2|.....50m|...100Mi|....100m|...150Mi|
+	// .........................--------|..--------|--------|--------|--------|--------|--------|
+	// .................................|..........|........|....500m|...712Mi|.......1|..1324Mi|
 }
 
 func ExampleAggregator_PrintResources_confluentinc() {
