@@ -32,15 +32,16 @@ func newObject(apiVersion, kind string, cpuL, memL, cpuR, memR string) Object {
 
 func (o Object) Outputline() string {
 
-	lf := "%s\t%s\t%s\t%s\t%s\t%s\t"
-	name := o.Kind
+	lf := "%s\t%s\t%s\t%s\t%s\t%s\t%s\t"
+	name := o.Metadata.Name
+	kind := o.Kind
 	replicas := ""
 	if r := o.Spec.Replicas; r > 0 {
 		replicas = fmt.Sprintf("%d", r)
 	}
 
 	if o.IsEmpty() {
-		return fmt.Sprintf(lf, name, replicas, "", "", "", "")
+		return fmt.Sprintf(lf, name, kind, replicas, "", "", "", "")
 	}
 
 	var lines []string
@@ -52,7 +53,7 @@ func (o Object) Outputline() string {
 	}
 
 	for _, container := range containers {
-		line := fmt.Sprintf(lf, name, replicas,
+		line := fmt.Sprintf(lf, name, kind, replicas,
 			container.Resources.Requests.Cpu,
 			container.Resources.Requests.Memory,
 			container.Resources.Limits.Cpu,
@@ -68,9 +69,14 @@ func (o Object) IsEmpty() bool {
 }
 
 type Object struct {
-	ApiVersion string `yaml:"apiVersion"`
-	Kind       string `yaml:"kind"`
-	Spec       spec   `yaml:"spec"`
+	ApiVersion string   `yaml:"apiVersion"`
+	Kind       string   `yaml:"kind"`
+	Metadata   metadata `yaml:"metadata"`
+	Spec       spec     `yaml:"spec"`
+}
+
+type metadata struct {
+	Name string `yaml:"name"`
 }
 
 type spec struct {

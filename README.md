@@ -12,7 +12,7 @@ kuberes version
 Takes in input a series of YAML manifests, all in 1 file.
 
 ```shell
-cat internal/aggr/testdata_confluentinc.yaml | kuberes declared
+cat internal/aggr/testdata_confluentinc.yaml | kuberes declared --src confluentinc
 ```
 
 Test with a Helm repo:

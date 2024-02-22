@@ -30,7 +30,7 @@ var cmdDeclared = &cobra.Command{
 				log.Fatal(err)
 			}
 		case "k8s":
-			headers := []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL"}
+			headers := []string{"Name", "Kind", "repl", "cpuR", "memR", "cpuL", "memL"}
 			aggregator := aggr.NewAggregator[k8s.Objects](headers, k8s.ComputeAggregates)
 			if err := aggregator.PrintResources(w, os.Stdin); err != nil {
 				log.Fatal(err)
@@ -43,5 +43,5 @@ var cmdDeclared = &cobra.Command{
 }
 
 func init() {
-	cmdDeclared.PersistentFlags().StringVar(&dataSrc, "src", "confluentinc", "Source of the YAML files")
+	cmdDeclared.PersistentFlags().StringVar(&dataSrc, "src", "k8s", "Source of the YAML files")
 }
