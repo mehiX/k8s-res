@@ -1,4 +1,4 @@
-# Kubernetes inspection tool (mainly resource)
+# Kubernetes inspection tool (mainly resources)
 
 ## Install
 
