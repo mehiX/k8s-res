@@ -55,9 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/mehix/kuberes/internal/aggr/aggregator.go (84.6%)</option>
-				
-				<option value="file1">github.com/mehix/kuberes/internal/aggr/print.go (100.0%)</option>
+				<option value="file0">github.com/mehix/kuberes/internal/aggr/aggregator.go (92.0%)</option>
 				
 				</select>
 			</div>
@@ -75,60 +73,31 @@
 
 import (
         "bytes"
+        "fmt"
         "io"
         "log"
+        "strings"
 
         "gopkg.in/yaml.v3"
 )
 
-type Object = Printable
-
-type Aggregator[T ~[]O, O Object] struct {
-        Headers []string
-        f       func(T) T // aggregator function
+type Aggregator[T ~[]O, O Printable] struct {
+        objects       T
+        aggregated    O
+        aggregateFunc func(T) O
 }
 
-func NewAggregator[T ~[]O, O Object](headers []string, aggrFunc func(T) T) Aggregator[T, O] <span class="cov8" title="1">{
-        return Aggregator[T, O]{
-                Headers: headers,
-                f:       aggrFunc,
+func New[T ~[]O, O Printable](aggrFunc func(T) O) *Aggregator[T, O] <span class="cov8" title="1">{
+        return &amp;Aggregator[T, O]{
+                aggregateFunc: aggrFunc,
         }
 }</span>
 
-func (a Aggregator[T, O]) PrintResources(w io.Writer, in io.Reader) error <span class="cov8" title="1">{
-
-        lines, err := a.getWithAggregates(in)
-        if err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span>
-
-        <span class="cov8" title="1">printAll(w, lines, a.Headers)
-
-        return nil</span>
-}
-
-func (a Aggregator[T, O]) getWithAggregates(in io.Reader) ([]Printable, error) <span class="cov8" title="1">{
-
-        allObjects, err := a.readObjects(in)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-
-        <span class="cov8" title="1">allObjects = a.f(allObjects)
-
-        printItems := make([]Printable, len(allObjects))
-        for i := range allObjects </span><span class="cov8" title="1">{
-                printItems[i] = Printable(allObjects[i])
-        }</span>
-
-        <span class="cov8" title="1">return printItems, nil</span>
-}
-
-func (a Aggregator[T, O]) readObjects(in io.Reader) (T, error) <span class="cov8" title="1">{
+func (a *Aggregator[T, O]) Load(in io.Reader) error <span class="cov8" title="1">{
         var buf bytes.Buffer
         _, err := io.Copy(&amp;buf, in)
         if err != nil </span><span class="cov0" title="0">{
-                return nil, err
+                return err
         }</span>
 
         <span class="cov8" title="1">parts := bytes.Split(buf.Bytes(), []byte("---"))
@@ -143,55 +112,31 @@ func (a Aggregator[T, O]) readObjects(in io.Reader) (T, error) <span class="cov8
                 }</span>
         }
 
-        <span class="cov8" title="1">return allObjects, nil</span>
-}
-</pre>
-		
-		<pre class="file" id="file1" style="display: none">package aggr
+        <span class="cov8" title="1">a.objects = allObjects
+        a.aggregated = a.aggregateFunc(allObjects)
 
-import (
-        "fmt"
-        "io"
-        "strings"
-)
-
-type Printable interface {
-        Outputline() string
-        IsEmpty() bool
+        return nil</span>
 }
 
-func toTxt(objs []Printable) (lines []string) <span class="cov8" title="1">{
-
-        for _, o := range objs </span><span class="cov8" title="1">{
-
-                if o.IsEmpty() </span><span class="cov8" title="1">{
-                        continue</span>
-                }
-
-                <span class="cov8" title="1">lines = append(lines, o.Outputline())</span>
-        }
-
-        <span class="cov8" title="1">return</span>
-}
-
-func printAll(w io.Writer, objs []Printable, headers []string) <span class="cov8" title="1">{
+func (a *Aggregator[T, O]) Print(w io.Writer, headers []string, onlyTotals bool) <span class="cov8" title="1">{
 
         delimiter := strings.Repeat("--------\t", len(headers))
-
-        lines := toTxt(objs)
 
         fmt.Fprintln(w, strings.Join(headers, "\t")+"\t")
         fmt.Fprintln(w, delimiter)
 
-        for i, l := range lines </span><span class="cov8" title="1">{
-                // last element consists of aggregated values
-                if i == len(lines)-1 </span><span class="cov8" title="1">{
-                        fmt.Fprintln(w, delimiter)
-                }</span>
-                <span class="cov8" title="1">fmt.Fprintln(w, l)</span>
+        if !onlyTotals </span><span class="cov8" title="1">{
+                for _, l := range a.objects </span><span class="cov8" title="1">{
+                        if !l.IsEmpty() </span><span class="cov8" title="1">{
+                                fmt.Fprintln(w, l.String())
+                        }</span>
+                }
+                <span class="cov8" title="1">fmt.Fprintln(w, delimiter)</span>
         }
 
-        <span class="cov8" title="1">fmt.Fprintln(w)</span>
+        <span class="cov8" title="1">fmt.Fprintln(w, a.aggregated.String())
+
+        fmt.Fprintln(w)</span>
 }
 </pre>
 		
