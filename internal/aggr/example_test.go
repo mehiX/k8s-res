@@ -17,7 +17,7 @@ var dataK8s []byte
 //go:embed testdata_confluentinc.yaml
 var dataConfluentinc []byte
 
-func ExamplePrinter_PrintResources_k8s() {
+func ExampleAggregator_Print_k8s() {
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, '.', tabwriter.AlignRight|tabwriter.Debug)
 	defer w.Flush()
@@ -26,7 +26,7 @@ func ExamplePrinter_PrintResources_k8s() {
 	if err := a.Load(bytes.NewReader(dataK8s)); err != nil {
 		log.Fatal(err)
 	}
-	a.Print(w, []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL"}, false)
+	a.Print(w, []string{"Name", "Kind", "repl", "cpuR", "memR", "cpuL", "memL"}, false)
 
 	// output:
 	// .............................Name|......Kind|....repl|....cpuR|....memR|....cpuL|....memL|
@@ -37,7 +37,7 @@ func ExamplePrinter_PrintResources_k8s() {
 	// .................................|..........|........|....500m|...712Mi|.......1|..1324Mi|
 }
 
-func ExamplePrinter_PrintResources_k8s_onlyTotals() {
+func ExampleAggregator_Print_k8s_onlyTotals() {
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, '.', tabwriter.AlignRight|tabwriter.Debug)
 	defer w.Flush()
@@ -46,15 +46,15 @@ func ExamplePrinter_PrintResources_k8s_onlyTotals() {
 	if err := a.Load(bytes.NewReader(dataK8s)); err != nil {
 		log.Fatal(err)
 	}
-	a.Print(w, []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL"}, true)
+	a.Print(w, []string{"Name", "Kind", "repl", "cpuR", "memR", "cpuL", "memL"}, true)
 
 	// output:
-	// ....Kind|....repl|....cpuR|....memR|....cpuL|....memL|
-	// --------|--------|--------|--------|--------|--------|
-	// ........|........|....500m|...712Mi|.......1|..1324Mi|
+	// ....Name|....Kind|....repl|....cpuR|....memR|....cpuL|....memL|
+	// --------|--------|--------|--------|--------|--------|--------|
+	// ........|........|........|....500m|...712Mi|.......1|..1324Mi|
 }
 
-func ExamplePrinter_PrintResources_confluentinc() {
+func ExampleAggregator_Print_confluentinc() {
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, '.', tabwriter.AlignRight|tabwriter.Debug)
 	defer w.Flush()
@@ -78,7 +78,7 @@ func ExamplePrinter_PrintResources_confluentinc() {
 	// ..............|........|...2750m|.41936Mi|...3400m|.48056Mi|...450Gi|
 }
 
-func ExamplePrinter_PrintResources_confluentinc_onlyTotals() {
+func ExampleAggregator_Print_confluentinc_onlyTotals() {
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, '.', tabwriter.AlignRight|tabwriter.Debug)
 	defer w.Flush()

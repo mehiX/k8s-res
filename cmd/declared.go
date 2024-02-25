@@ -38,7 +38,7 @@ var cmdDeclared = &cobra.Command{
 			if err := aggregator.Load(os.Stdin); err != nil {
 				log.Fatal(err)
 			}
-			aggregator.Print(w, []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL"}, onlyTotals)
+			aggregator.Print(w, []string{"Name", "Kind", "repl", "cpuR", "memR", "cpuL", "memL"}, onlyTotals)
 		default:
 			fmt.Println("Unknown data source: ", dataSrc)
 			os.Exit(1)
