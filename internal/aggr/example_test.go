@@ -3,6 +3,7 @@ package aggr
 import (
 	"bytes"
 	_ "embed"
+	"log"
 	"os"
 	"text/tabwriter"
 
@@ -16,15 +17,17 @@ var dataK8s []byte
 //go:embed testdata_confluentinc.yaml
 var dataConfluentinc []byte
 
-func ExampleAggregator_PrintResources_k8s() {
+func ExamplePrinter_PrintResources_k8s() {
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, '.', tabwriter.AlignRight|tabwriter.Debug)
 	defer w.Flush()
 
-	headers := []string{"Name", "Kind", "repl", "cpuR", "memR", "cpuL", "memL"}
-	aggregator := NewAggregator[k8s.Objects](headers, k8s.ComputeAggregates)
+	a := New(k8s.ComputeAggregates)
+	if err := a.Load(bytes.NewReader(dataK8s)); err != nil {
+		log.Fatal(err)
+	}
+	a.Print(w, []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL"}, false)
 
-	aggregator.PrintResources(w, bytes.NewReader(dataK8s))
 	// output:
 	// .............................Name|......Kind|....repl|....cpuR|....memR|....cpuL|....memL|
 	// .........................--------|..--------|--------|--------|--------|--------|--------|
@@ -34,15 +37,34 @@ func ExampleAggregator_PrintResources_k8s() {
 	// .................................|..........|........|....500m|...712Mi|.......1|..1324Mi|
 }
 
-func ExampleAggregator_PrintResources_confluentinc() {
+func ExamplePrinter_PrintResources_k8s_onlyTotals() {
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, '.', tabwriter.AlignRight|tabwriter.Debug)
 	defer w.Flush()
 
-	headers := []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL", "vol"}
-	aggregator := NewAggregator[confluentinc.Objects](headers, confluentinc.ComputeAggregates)
+	a := New(k8s.ComputeAggregates)
+	if err := a.Load(bytes.NewReader(dataK8s)); err != nil {
+		log.Fatal(err)
+	}
+	a.Print(w, []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL"}, true)
 
-	aggregator.PrintResources(w, bytes.NewReader(dataConfluentinc))
+	// output:
+	// ....Kind|....repl|....cpuR|....memR|....cpuL|....memL|
+	// --------|--------|--------|--------|--------|--------|
+	// ........|........|....500m|...712Mi|.......1|..1324Mi|
+}
+
+func ExamplePrinter_PrintResources_confluentinc() {
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, '.', tabwriter.AlignRight|tabwriter.Debug)
+	defer w.Flush()
+
+	a := New(confluentinc.ComputeAggregates)
+	if err := a.Load(bytes.NewReader(dataConfluentinc)); err != nil {
+		log.Fatal(err)
+	}
+	a.Print(w, []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL", "vol"}, false)
+
 	// Output:
 	// ..........Kind|....repl|....cpuR|....memR|....cpuL|....memL|.....vol|
 	// ......--------|--------|--------|--------|--------|--------|--------|
@@ -54,4 +76,21 @@ func ExampleAggregator_PrintResources_confluentinc() {
 	// .....Zookeeper|.......3|....100m|.....2Gi|....150m|.....2Gi|....50Gi|
 	// ......--------|--------|--------|--------|--------|--------|--------|
 	// ..............|........|...2750m|.41936Mi|...3400m|.48056Mi|...450Gi|
+}
+
+func ExamplePrinter_PrintResources_confluentinc_onlyTotals() {
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 0, '.', tabwriter.AlignRight|tabwriter.Debug)
+	defer w.Flush()
+
+	a := New(confluentinc.ComputeAggregates)
+	if err := a.Load(bytes.NewReader(dataConfluentinc)); err != nil {
+		log.Fatal(err)
+	}
+	a.Print(w, []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL", "vol"}, true)
+
+	// Output:
+	// ....Kind|....repl|....cpuR|....memR|....cpuL|....memL|.....vol|
+	// --------|--------|--------|--------|--------|--------|--------|
+	// ........|........|...2750m|.41936Mi|...3400m|.48056Mi|...450Gi|
 }

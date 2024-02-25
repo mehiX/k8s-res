@@ -40,7 +40,7 @@ func (o Object) diskVol() string {
 	return diskVol.String()
 }
 
-func (o Object) Outputline() string {
+func (o Object) String() string {
 
 	lf := "%s\t%s\t%s\t%s\t%s\t%s\t%s\t"
 	name := o.Kind

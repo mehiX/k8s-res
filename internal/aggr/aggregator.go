@@ -2,60 +2,31 @@ package aggr
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
-type Object = Printable
-
-type Aggregator[T ~[]O, O Object] struct {
-	Headers []string
-	f       func(T) T // aggregator function
+type Aggregator[T ~[]O, O Printable] struct {
+	objects       T
+	aggregated    O
+	aggregateFunc func(T) O
 }
 
-func NewAggregator[T ~[]O, O Object](headers []string, aggrFunc func(T) T) Aggregator[T, O] {
-	return Aggregator[T, O]{
-		Headers: headers,
-		f:       aggrFunc,
+func New[T ~[]O, O Printable](aggrFunc func(T) O) *Aggregator[T, O] {
+	return &Aggregator[T, O]{
+		aggregateFunc: aggrFunc,
 	}
 }
 
-func (a Aggregator[T, O]) PrintResources(w io.Writer, in io.Reader) error {
-
-	lines, err := a.getWithAggregates(in)
-	if err != nil {
-		return err
-	}
-
-	printAll(w, lines, a.Headers)
-
-	return nil
-}
-
-func (a Aggregator[T, O]) getWithAggregates(in io.Reader) ([]Printable, error) {
-
-	allObjects, err := a.readObjects(in)
-	if err != nil {
-		return nil, err
-	}
-
-	allObjects = a.f(allObjects)
-
-	printItems := make([]Printable, len(allObjects))
-	for i := range allObjects {
-		printItems[i] = Printable(allObjects[i])
-	}
-
-	return printItems, nil
-}
-
-func (a Aggregator[T, O]) readObjects(in io.Reader) (T, error) {
+func (a *Aggregator[T, O]) Load(in io.Reader) error {
 	var buf bytes.Buffer
 	_, err := io.Copy(&buf, in)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	parts := bytes.Split(buf.Bytes(), []byte("---"))
@@ -70,5 +41,29 @@ func (a Aggregator[T, O]) readObjects(in io.Reader) (T, error) {
 		}
 	}
 
-	return allObjects, nil
+	a.objects = allObjects
+	a.aggregated = a.aggregateFunc(allObjects)
+
+	return nil
+}
+
+func (a *Aggregator[T, O]) Print(w io.Writer, headers []string, onlyTotals bool) {
+
+	delimiter := strings.Repeat("--------\t", len(headers))
+
+	fmt.Fprintln(w, strings.Join(headers, "\t")+"\t")
+	fmt.Fprintln(w, delimiter)
+
+	if !onlyTotals {
+		for _, l := range a.objects {
+			if !l.IsEmpty() {
+				fmt.Fprintln(w, l.String())
+			}
+		}
+		fmt.Fprintln(w, delimiter)
+	}
+
+	fmt.Fprintln(w, a.aggregated.String())
+
+	fmt.Fprintln(w)
 }

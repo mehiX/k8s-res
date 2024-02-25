@@ -4,7 +4,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-func ComputeAggregates(objs Objects) Objects {
+func ComputeAggregates(objs Objects) Object {
 
 	tCpuR := new(resource.Quantity)
 	tCpuL := new(resource.Quantity)
@@ -66,9 +66,5 @@ func ComputeAggregates(objs Objects) Objects {
 		dataVol.String(),
 	)
 
-	l := make([]Object, 0)
-	l = append(l, objs...)
-	l = append(l, aggrObj)
-
-	return l
+	return aggrObj
 }

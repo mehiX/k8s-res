@@ -56,34 +56,6 @@ var cmdNamespaces = &cobra.Command{
 	},
 }
 
-func whichNamespaces() ([]string, error) {
-
-	lst := *onlyNamespaces
-
-	if *onlyNamespacesFromFile != "" {
-		b, err := os.ReadFile(*onlyNamespacesFromFile)
-		if err != nil {
-			return nil, fmt.Errorf("Reading input file %s got error: %w", *onlyNamespacesFromFile, err)
-		}
-		b = bytes.ReplaceAll(b, []byte("\n"), []byte(","))
-		lst += "," + string(b)
-	}
-
-	ns := strings.Split(lst, ",")
-	for i := range ns {
-		ns[i] = strings.TrimSpace(ns[i])
-	}
-	slices.Sort(ns)
-	ns = slices.Compact(ns)
-
-	if ns[0] == "" {
-		// if there is an empty element then it is in the first position
-		ns = ns[1:]
-	}
-
-	return ns, nil
-}
-
 func Resources(ctx context.Context) error {
 
 	filterByNS, err := whichNamespaces()
@@ -118,6 +90,34 @@ func Resources(ctx context.Context) error {
 	printQuotas(os.Stdout, quotas)
 
 	return nil
+}
+
+func whichNamespaces() ([]string, error) {
+
+	lst := *onlyNamespaces
+
+	if *onlyNamespacesFromFile != "" {
+		b, err := os.ReadFile(*onlyNamespacesFromFile)
+		if err != nil {
+			return nil, fmt.Errorf("Reading input file %s got error: %w", *onlyNamespacesFromFile, err)
+		}
+		b = bytes.ReplaceAll(b, []byte("\n"), []byte(","))
+		lst += "," + string(b)
+	}
+
+	ns := strings.Split(lst, ",")
+	for i := range ns {
+		ns[i] = strings.TrimSpace(ns[i])
+	}
+	slices.Sort(ns)
+	ns = slices.Compact(ns)
+
+	if ns[0] == "" {
+		// if there is an empty element then it is in the first position
+		ns = ns[1:]
+	}
+
+	return ns, nil
 }
 
 func printQuotas(out io.Writer, results []namespaces.QuotaResult) {

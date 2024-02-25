@@ -30,7 +30,7 @@ func newObject(apiVersion, kind string, cpuL, memL, cpuR, memR string) Object {
 	}
 }
 
-func (o Object) Outputline() string {
+func (o Object) String() string {
 
 	lf := "%s\t%s\t%s\t%s\t%s\t%s\t%s\t"
 	name := o.Metadata.Name

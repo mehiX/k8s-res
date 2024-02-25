@@ -12,7 +12,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var dataSrc string
+var (
+	dataSrc    string
+	output     string
+	onlyTotals bool
+)
 
 var cmdDeclared = &cobra.Command{
 	Use:   "declared [--src {confluentinc | k8s}]",
@@ -24,17 +28,17 @@ var cmdDeclared = &cobra.Command{
 
 		switch dataSrc {
 		case "confluentinc":
-			headers := []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL", "vol"}
-			aggregator := aggr.NewAggregator[confluentinc.Objects](headers, confluentinc.ComputeAggregates)
-			if err := aggregator.PrintResources(w, os.Stdin); err != nil {
+			aggregator := aggr.New(confluentinc.ComputeAggregates)
+			if err := aggregator.Load(os.Stdin); err != nil {
 				log.Fatal(err)
 			}
+			aggregator.Print(w, []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL", "vol"}, onlyTotals)
 		case "k8s":
-			headers := []string{"Name", "Kind", "repl", "cpuR", "memR", "cpuL", "memL"}
-			aggregator := aggr.NewAggregator[k8s.Objects](headers, k8s.ComputeAggregates)
-			if err := aggregator.PrintResources(w, os.Stdin); err != nil {
+			aggregator := aggr.New(k8s.ComputeAggregates)
+			if err := aggregator.Load(os.Stdin); err != nil {
 				log.Fatal(err)
 			}
+			aggregator.Print(w, []string{"Kind", "repl", "cpuR", "memR", "cpuL", "memL"}, onlyTotals)
 		default:
 			fmt.Println("Unknown data source: ", dataSrc)
 			os.Exit(1)
@@ -44,4 +48,6 @@ var cmdDeclared = &cobra.Command{
 
 func init() {
 	cmdDeclared.PersistentFlags().StringVar(&dataSrc, "src", "k8s", "Source of the YAML files")
+	cmdDeclared.Flags().StringVarP(&output, "output", "o", "plain", "Output format (plain, json)")
+	cmdDeclared.Flags().BoolVar(&onlyTotals, "onlyTotals", false, "Print only the totals")
 }
